@@ -61,11 +61,14 @@ function Sidebar({ meetings, selectedMeeting, onSelectMeeting, openUpload, onLog
             </div>
           ) : (
             meetings.map((m) => (
-              <button
+              <div
                 key={m.meeting_id}
                 id={`meeting-${m.meeting_id}`}
+                role="button"
+                tabIndex={0}
                 className={`meeting-item ${selectedMeeting?.meeting_id === m.meeting_id ? "active" : ""}`}
                 onClick={() => onSelectMeeting(m)}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onSelectMeeting(m); }}
                 title={`${m.title}\n${m.participants_count} participant(s)\nStatus: ${m.pipeline_status}`}
               >
                 <div className="meeting-left">
@@ -96,7 +99,7 @@ function Sidebar({ meetings, selectedMeeting, onSelectMeeting, openUpload, onLog
                     </button>
                   </div>
                 )}
-              </button>
+              </div>
             ))
           )}
         </div>

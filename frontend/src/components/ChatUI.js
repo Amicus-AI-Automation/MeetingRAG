@@ -7,7 +7,8 @@ function ChatUI({ meeting }) {
   const [message, setMessage] = useState("");
   const [chat, setChat] = useState(() => {
     if (meeting?.meeting_id) {
-      const saved = localStorage.getItem(`chat_${meeting.meeting_id}`);
+      const email = localStorage.getItem("email") || "default";
+      const saved = localStorage.getItem(`chat_${email}_${meeting.meeting_id}`);
       if (saved) return JSON.parse(saved);
     }
     return [];
@@ -30,7 +31,8 @@ function ChatUI({ meeting }) {
   // Load chat and poll status when meeting changes
   useEffect(() => {
     if (meeting) {
-      const savedChat = localStorage.getItem(`chat_${meeting.meeting_id}`);
+      const email = localStorage.getItem("email") || "default";
+      const savedChat = localStorage.getItem(`chat_${email}_${meeting.meeting_id}`);
       setChat(savedChat ? JSON.parse(savedChat) : []);
       setError("");
       setPipelineStatus(null);
@@ -49,7 +51,8 @@ function ChatUI({ meeting }) {
   // Save chat to localStorage whenever it changes
   useEffect(() => {
     if (meeting?.meeting_id && chat.length > 0) {
-      localStorage.setItem(`chat_${meeting.meeting_id}`, JSON.stringify(chat));
+      const email = localStorage.getItem("email") || "default";
+      localStorage.setItem(`chat_${email}_${meeting.meeting_id}`, JSON.stringify(chat));
     }
   }, [chat, meeting?.meeting_id]);
 
@@ -147,7 +150,7 @@ function ChatUI({ meeting }) {
         setError("⏳ Meeting is still being transcribed. Please wait and try again.");
         checkPipelineStatus();
       } else if (status === 503) {
-        setError("⚠️ AI service is offline. Please ensure the Python API is running on port 8000.");
+        setError("⚠️ AI service is offline. Please ensure the Python API is running on port 8001.");
       } else {
         setError(msg);
       }

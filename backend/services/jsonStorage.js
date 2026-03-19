@@ -103,7 +103,7 @@ const getMeetingsByUser = (userEmail) => {
 
         const isInAllowedUsers = meeting.access_control?.allowed_users?.includes(userEmail);
         const isUploader = meeting.ingestion_info?.uploaded_by === userEmail;
-        const isParticipant = meeting.participants?.some(p => p.name === userEmail);
+        const isParticipant = meeting.participants?.some(p => p.name === userEmail || p.user_id === userEmail);
 
         // Add the new is_allowed and can_delete flags
         meeting.is_allowed = (isInAllowedUsers || isUploader || isParticipant);

@@ -2,6 +2,12 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
+const connectDB = require("./config/database");
+
+// Connect to MongoDB, then run one-time migration of existing JSON records
+connectDB().then(() => {
+  require("./scripts/migrateJsonToMongo").run().catch(() => {});
+});
 
 // Import routes
 const meetingRoutes = require("./routes/meeting");
@@ -10,9 +16,9 @@ const meetingRoutes = require("./routes/meeting");
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Middleware — raise body limits so large file metadata doesn't cause connection resets
+app.use(express.json({ limit: "100mb" }));
+app.use(express.urlencoded({ extended: true, limit: "100mb" }));
 app.use(
   cors({
     origin: process.env.CORS_ORIGIN || "http://localhost:3000",
@@ -25,8 +31,8 @@ app.get("/health", (req, res) => {
   res.status(200).json({
     message: "Server is running",
     status: "✅ MeetingRAG Backend Ready",
-    storage: "JSON files in backend/data",
-    python_api: process.env.PYTHON_API_URL || "http://localhost:8000",
+    storage: "JSON files in backend/data + MongoDB",
+    python_api: process.env.PYTHON_API_URL || "http://localhost:8001",
     timestamp: new Date(),
   });
 });
@@ -64,10 +70,9 @@ app.use((req, res) => {
 app.listen(PORT, () => {
   console.log(`\n${"=".repeat(60)}`);
   console.log(`🚀 Node.js Server  → http://localhost:${PORT}`);
-  console.log(`🐍 Python API      → ${process.env.PYTHON_API_URL || "http://localhost:8000"}`);
-  console.log(`📧 Email Service   : Gmail OTP`);
+  console.log(`🐍 Python API      → ${process.env.PYTHON_API_URL || "http://localhost:8001"}`);
   console.log(`📁 Uploads         : ./uploads`);
-  console.log(`📊 Storage         : JSON files in ./data`);
+  console.log(`📊 Storage         : JSON + MongoDB`);
   console.log(`${"=".repeat(60)}\n`);
 });
 

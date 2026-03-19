@@ -2,9 +2,10 @@ const fs = require("fs");
 const path = require("path");
 const axios = require("axios");
 const jsonStorage = require("../services/jsonStorage");
+const MeetingModel = require("../models/Meeting");
 
 // Python FastAPI microservice URL
-const PYTHON_API_URL = process.env.PYTHON_API_URL || "http://localhost:8000";
+const PYTHON_API_URL = process.env.PYTHON_API_URL || "http://localhost:8001";
 
 // ─────────────────────────────────────────
 // UPLOAD MEETING
@@ -93,6 +94,21 @@ const uploadMeeting = async (req, res) => {
     });
 
     console.log(`✅ Meeting record saved: ${meeting.meeting_id}`);
+
+    // ── Mirror meeting to MongoDB (fire-and-forget) ──
+    MeetingModel.findOneAndUpdate(
+      { meeting_id: meeting.meeting_id },
+      {
+        meeting_id: meeting.meeting_id,
+        source_file: meeting.source_file,
+        access_link: `${process.env.FRONTEND_URL || "http://localhost:3000"}/meeting/${meeting.meeting_id}`,
+        meeting_info: meeting.meeting_info,
+        participants: meeting.participants,
+        access_control: meeting.access_control,
+        ingestion_info: meeting.ingestion_info,
+      },
+      { upsert: true, returnDocument: 'after', setDefaultsOnInsert: true }
+    ).catch((err) => console.warn("⚠️ MongoDB meeting upsert failed:", err.message));
 
     // Respond immediately so the user isn't waiting
     res.status(201).json({
@@ -263,7 +279,8 @@ const getPipelineStatus = async (req, res) => {
 
     const isAllowed =
       meeting.access_control?.allowed_users?.includes(email) ||
-      meeting.ingestion_info?.uploaded_by === email;
+      meeting.ingestion_info?.uploaded_by === email ||
+      meeting.participants?.some(p => p.name === email || p.user_id === email);
 
     if (!isAllowed) {
       return res.status(403).json({ message: "you are not allowed to know about this meeting" });
