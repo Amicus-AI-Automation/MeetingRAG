@@ -12,7 +12,7 @@ def check_access(meeting_id: str, user_email: str, metadata_dir: Path) -> Tuple[
 
     allowed_users = metadata.get("access_control", {}).get("allowed_users", [])
     uploaded_by = metadata.get("ingestion_info", {}).get("uploaded_by", "")
-    participants = [p.get("name", "") for p in metadata.get("participants", [])]
+    participants = [p.get("name", "") for p in metadata.get("participants", [])] + [p.get("user_id", "") for p in metadata.get("participants", [])]
 
     has_access = (
         user_email in allowed_users

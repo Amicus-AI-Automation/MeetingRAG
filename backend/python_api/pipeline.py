@@ -54,6 +54,24 @@ def run_pipeline(meeting_id: str, file_path: str, metadata: dict):
             with open(meta_path, "w", encoding="utf-8") as f:
                 json.dump(saved_meta, f, indent=2)
 
+            # ── Sync pipeline result to MongoDB (best-effort) ──
+            try:
+                import pymongo, os
+                mongo_uri = os.environ.get("MONGO_URI", "mongodb://localhost:27017/meetingrag")
+                client = pymongo.MongoClient(mongo_uri, serverSelectionTimeoutMS=2000)
+                db = client.get_default_database()
+                db["meetings"].update_one(
+                    {"meeting_id": meeting_id},
+                    {"$set": {
+                        "ingestion_info.pipeline_status": "done",
+                        "ingestion_info.chunks_count": len(chunks),
+                    }},
+                )
+                client.close()
+                print(f"📊 MongoDB meeting status updated → done")
+            except Exception as mongo_err:
+                print(f"⚠️ MongoDB pipeline sync skipped: {mongo_err}")
+
         job_status[meeting_id] = {"status": "done", "message": f"Pipeline complete. {len(chunks)} chunks indexed."}
         print(f"🎉 Pipeline done for {meeting_id}")
 

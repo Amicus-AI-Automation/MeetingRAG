@@ -1,0 +1,29 @@
+{
+  "meeting_id": "ES382812VHABQ",
+  "source_file": "ES2003b.Mix-Headset.wav",
+  "access_link": "http://localhost:3000/meeting/ES382812VHABQ",
+  "meeting_info": {
+    "title": "Project ECAT",
+    "date": "2026-03-18T00:00:00.000Z",
+    "duration_seconds": 200,
+    "language": "en"
+  },
+  "participants": [
+    {
+      "user_id": "92184fa6-4247-46f4-98aa-e7e836266b32",
+      "name": "swapnil_singh@amicusglobal.com"
+    }
+  ],
+  "access_control": {
+    "allowed_users": [
+      "nandini_singh@amicusglobal.com"
+    ]
+  },
+  "ingestion_info": {
+    "uploaded_by": "nandini_singh@amicusglobal.com",
+    "uploaded_at": "2026-03-19T14:59:42.812Z",
+    "pipeline_version": "v2_whisper_chroma",
+    "pipeline_status": "done",
+    "chunks_count": 63
+  }
+}
