@@ -2,7 +2,7 @@
 
 A full-stack web application that enables users to upload meeting recordings and ask intelligent questions about them using a Chat UI. Built with React frontend and Node.js/Express backend with MongoDB persistence.
 
-## 📋 Features
+## Features
 
 - **Email-based OTP Authentication** - Secure login via one-time passwords
 - **Meeting Upload** - Upload meeting files (MP4, WAV) with participant information
@@ -11,7 +11,7 @@ A full-stack web application that enables users to upload meeting recordings and
 - **Persistent Storage** - All meetings and user data stored in MongoDB
 - **Production-Ready** - Error handling, validation, CORS, rate limiting
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 MeetingRAG/
@@ -55,7 +55,7 @@ MeetingRAG/
     └── README.md
 ```
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 - Node.js (v14+)
@@ -138,7 +138,7 @@ npm start
 # Runs on http://localhost:3000
 ```
 
-## 🔄 User Flow
+## User Flow
 
 1. **Login** → User enters email → Backend sends OTP via Gmail
 2. **OTP Verification** → User enters OTP → Backend generates JWT token
@@ -146,7 +146,7 @@ npm start
 4. **Upload Meeting** → User clicks "Upload Meeting" → Upload file + add participants
 5. **Query** → User asks questions → Backend returns answers (placeholder for RAG)
 
-## 📡 API Endpoints
+## API Endpoints
 
 ### Authentication
 | Method | Endpoint | Body | Response |
@@ -161,7 +161,7 @@ npm start
 | POST | `/query` | `{ query }` | `{ answer }` |
 | GET | `/meetings` | - | List of meetings |
 
-## 🧪 Testing the Application
+## Testing the Application
 
 ### Test OTP Flow
 ```bash
@@ -223,7 +223,7 @@ netstat -ano | findstr :5000
 taskkill /PID <PID> /F
 ```
 
-## 📝 MongoDB Schema
+## MongoDB Schema
 
 ### User Collection
 ```json
@@ -262,7 +262,7 @@ taskkill /PID <PID> /F
 }
 ```
 
-## 🔒 Security
+## Security
 
 - **JWT Authentication** - 7-day expiry
 - **Email OTP** - 10-minute expiry, 1-minute rate limit
@@ -271,7 +271,7 @@ taskkill /PID <PID> /F
 - **CORS Protection** - Whitelist frontend origin
 - **Error Handling** - Generic error messages to prevent info leakage
 
-## 🚀 Production Deployment
+## Production Deployment
 
 ### Frontend (Vercel, Netlify)
 ```bash
@@ -285,7 +285,7 @@ npm run build
 # Push code to git → Auto-deploy
 ```
 
-## 📦 Dependencies
+## Dependencies
 
 **Frontend**
 - React 19
@@ -300,7 +300,7 @@ npm run build
 - Multer (file uploads)
 - Nodemailer (emails)
 
-## 📄 License
+## License
 
 ISC
 
