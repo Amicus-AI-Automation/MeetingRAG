@@ -189,7 +189,7 @@ npm start
 # 3. Should receive response from backend
 ```
 
-## 🛠 Development
+## Development
 
 ### Enable Development Email Logging
 In `backend/controllers/authController.js`, OTP codes are logged to console in development mode:
