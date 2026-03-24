@@ -5,7 +5,7 @@ const jsonStorage = require("../services/jsonStorage");
 const MeetingModel = require("../models/Meeting");
 
 // Python FastAPI microservice URL
-const PYTHON_API_URL = process.env.PYTHON_API_URL || "http://localhost:8001";
+const PYTHON_API_URL = process.env.PYTHON_API_URL || "http://localhost:8000";
 
 // ─────────────────────────────────────────
 // UPLOAD MEETING

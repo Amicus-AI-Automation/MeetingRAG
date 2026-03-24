@@ -9,7 +9,8 @@ env_path = Path(__file__).parent.parent / ".env"
 load_dotenv(env_path)
 
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
-OLLAMA_URL = "http://localhost:11434/api/generate"
+# In Docker/k8s the Ollama service is reached by its service name, not localhost
+OLLAMA_URL = os.getenv("OLLAMA_URL", "http://ollama:11434/api/generate")
 
 def ask_llm(prompt, model="llama-3.3-70b-versatile"):
     """

@@ -1,0 +1,21 @@
+node_modules
+.dockerignore
+Dockerfile
+.git
+.gitignore
+.env
+.env.*
+README.md
+*.log
+npm-debug.log*
+
+# Runtime data dirs — mounted as volumes in Docker/k8s
+uploads/*
+data/*
+model_cache/
+
+# Python artefacts in backend root
+__pycache__/
+*.pyc
+*.pyo
+python_api/__pycache__/

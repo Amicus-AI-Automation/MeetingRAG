@@ -8,11 +8,12 @@ pydantic==2.7.1
 
 # Audio processing
 soundfile==0.12.1
-librosa==0.10.1
+scipy>=1.11.0
 numpy==1.26.4
 
 # Transcription (Whisper)
-faster-whisper==1.0.1
+# >=1.1.0 pins av>=12 which ships pre-built wheels — no FFmpeg dev headers needed
+faster-whisper>=1.1.0
 
 # Embeddings
 sentence-transformers==2.7.0

@@ -8,13 +8,15 @@ ROOT_DIR = Path(__file__).parent.parent   # backend/
 DATA_DIR = ROOT_DIR / "data"
 METADATA_DIR = DATA_DIR / "metadata"
 TRANSCRIPTS_DIR = DATA_DIR / "transcripts"
-CHROMA_PATH = str(DATA_DIR / "chroma_db")
-UPLOAD_DIR = ROOT_DIR / "uploads"
+
+# Allow Docker/k8s to override storage paths via environment variables
+CHROMA_PATH = os.getenv("CHROMA_PATH", str(DATA_DIR / "chroma_db"))
+UPLOAD_DIR = Path(os.getenv("UPLOAD_DIR", str(ROOT_DIR / "uploads")))
 
 # Node storage (records) is also in DATA_DIR
 RECORDS_DIR = DATA_DIR / "records"
 
-for d in [METADATA_DIR, TRANSCRIPTS_DIR, DATA_DIR / "chroma_db", RECORDS_DIR]:
+for d in [METADATA_DIR, TRANSCRIPTS_DIR, Path(CHROMA_PATH), RECORDS_DIR, UPLOAD_DIR]:
     d.mkdir(parents=True, exist_ok=True)
 
 COLLECTION_NAME = "meeting_transcripts"

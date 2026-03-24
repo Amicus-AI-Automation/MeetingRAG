@@ -107,4 +107,4 @@ def chat_meeting(req: ChatRequest):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("python_api.main:app", host="0.0.0.0", port=8001, reload=False)
+    uvicorn.run("python_api.main:app", host="0.0.0.0", port=8000, reload=False)

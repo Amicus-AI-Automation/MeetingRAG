@@ -1,0 +1,180 @@
+# ============================================================
+# MeetingRAG — Docker Compose
+# For local testing of the fully containerised stack.
+#
+# Usage:
+#   1. cp .env.example .env  (fill in your values)
+#   2. docker compose up --build
+#   3. Open http://localhost:3000
+#
+# After Ollama starts, pull the LLM model once:
+#   docker compose exec ollama ollama pull phi3:mini
+# ============================================================
+
+services:
+
+  # ── 1. MongoDB ─────────────────────────────────────────────
+  mongodb:
+    image: mongo:7
+    container_name: meetingrag-mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_DATABASE: meetingrag
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - meetingrag-net
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+
+  # ── 2. Ollama (local LLM fallback) ─────────────────────────
+  ollama:
+    image: ollama/ollama:latest
+    container_name: meetingrag-ollama
+    restart: unless-stopped
+    volumes:
+      - ollama-data:/root/.ollama
+    networks:
+      - meetingrag-net
+    # Expose on host for manual model management: docker compose exec ollama ollama pull phi3:mini
+    ports:
+      - "11434:11434"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  # ── 3. Python API (FastAPI — transcription + RAG) ──────────
+  python-api:
+    image: meetingrag/python-api:latest
+    build:
+      # Build context is project root so Dockerfile can reach requirements_python.txt
+      context: .
+      dockerfile: backend/python_api/Dockerfile
+    container_name: meetingrag-python-api
+    restart: unless-stopped
+    environment:
+      GROQ_API_KEY: ${GROQ_API_KEY}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      OLLAMA_URL: http://ollama:11434/api/generate
+      CHROMA_PATH: /data/chroma_db
+      UPLOAD_DIR: /app/uploads
+      MONGO_URI: ${MONGO_URI:-mongodb://mongodb:27017/meetingrag}
+      # HuggingFace cache — both sentence-transformers and faster-whisper respect this
+      HF_HOME: /model_cache
+      TRANSFORMERS_CACHE: /model_cache
+    volumes:
+      # Shared with node-backend (uploaded audio/video files)
+      - uploads-data:/app/uploads
+      # ChromaDB vector store (persistent)
+      - chroma-data:/data/chroma_db
+      # JSON metadata + transcripts (Python writes, Node reads)
+      - ./backend/data/metadata:/data/metadata
+      - ./backend/data/transcripts:/data/transcripts
+      - ./backend/data/records:/data/records
+      # Pre-downloaded model weights (avoid re-downloading on every restart)
+      - model-cache:/model_cache
+    networks:
+      - meetingrag-net
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      ollama:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+  # ── 4. Node.js Backend (Express — REST API + auth) ─────────
+  node-backend:
+    image: meetingrag/node-backend:latest
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: meetingrag-node-backend
+    restart: unless-stopped
+    environment:
+      PORT: 5000
+      MONGO_URI: ${MONGO_URI:-mongodb://mongodb:27017/meetingrag}
+      PYTHON_API_URL: http://python-api:8000
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000}
+      JWT_SECRET: ${JWT_SECRET}
+      AZURE_TENANT_ID: ${AZURE_TENANT_ID}
+      AZURE_CLIENT_ID: ${AZURE_CLIENT_ID}
+      AZURE_CLIENT_SECRET: ${AZURE_CLIENT_SECRET}
+    volumes:
+      # Same uploads volume as python-api (shared read/write)
+      - uploads-data:/app/uploads
+    networks:
+      - meetingrag-net
+    ports:
+      - "5000:5000"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      python-api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+
+  # ── 5. Frontend (React → nginx) ────────────────────────────
+  frontend:
+    image: meetingrag/frontend:latest
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        # React env vars are baked in at build time
+        REACT_APP_API_URL: ${REACT_APP_API_URL:-http://localhost:5000}
+        REACT_APP_AZURE_TENANT_ID: ${REACT_APP_AZURE_TENANT_ID}
+        REACT_APP_AZURE_CLIENT_ID: ${REACT_APP_AZURE_CLIENT_ID}
+    container_name: meetingrag-frontend
+    restart: unless-stopped
+    networks:
+      - meetingrag-net
+    ports:
+      - "3000:80"
+    depends_on:
+      node-backend:
+        condition: service_healthy
+
+# ── Named volumes ───────────────────────────────────────────
+volumes:
+  # Shared between node-backend and python-api (uploaded meeting files)
+  uploads-data:
+    name: meetingrag-uploads
+
+  # ChromaDB vector store
+  chroma-data:
+    name: meetingrag-chroma
+
+  # HuggingFace model weights (Whisper + sentence-transformers)
+  model-cache:
+    name: meetingrag-model-cache
+
+  # MongoDB data directory
+  mongo-data:
+    name: meetingrag-mongo
+
+  # Ollama downloaded LLM model weights
+  ollama-data:
+    name: meetingrag-ollama
+
+# ── Network ──────────────────────────────────────────────────
+networks:
+  meetingrag-net:
+    name: meetingrag-net
+    driver: bridge

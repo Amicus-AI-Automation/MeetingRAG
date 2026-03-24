@@ -150,7 +150,7 @@ function ChatUI({ meeting }) {
         setError("⏳ Meeting is still being transcribed. Please wait and try again.");
         checkPipelineStatus();
       } else if (status === 503) {
-        setError("⚠️ AI service is offline. Please ensure the Python API is running on port 8001.");
+        setError("⚠️ AI service is offline. Please ensure the Python API is running on port 8000.");
       } else {
         setError(msg);
       }

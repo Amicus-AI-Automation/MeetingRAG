@@ -1,0 +1,21 @@
+# .dockerignore for python-api (build context is project root)
+.git
+.gitignore
+.venv
+**/.venv
+frontend/
+backend/node_modules/
+backend/uploads/*
+backend/data/*
+backend/model_cache/
+backend/__pycache__/
+backend/python_api/__pycache__/
+**/*.pyc
+**/*.pyo
+*.log
+.env
+.env.*
+README.md
+SETUP_GUIDE.md
+k8s/
+docker-compose.yml

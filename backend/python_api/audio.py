@@ -33,6 +33,8 @@ def load_audio(file_path: str, target_sr: int = 16000) -> np.ndarray:
     if len(audio.shape) > 1:
         audio = np.mean(audio, axis=1)
     if sr != target_sr:
-        import librosa
-        audio = librosa.resample(audio, orig_sr=sr, target_sr=target_sr)
+        from scipy.signal import resample_poly
+        from math import gcd
+        g = gcd(int(sr), int(target_sr))
+        audio = resample_poly(audio, int(target_sr) // g, int(sr) // g)
     return audio
