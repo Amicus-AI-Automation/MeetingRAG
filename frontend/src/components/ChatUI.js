@@ -6,7 +6,7 @@ import "./ChatUI.css";
 function ChatUI({ meeting }) {
   const [message, setMessage] = useState("");
   const [chat, setChat] = useState(() => {
-    if (meeting?.meeting_id) {
+    if (meeting?.meeting_id && meeting.is_allowed !== false) {
       const email = localStorage.getItem("email") || "default";
       const saved = localStorage.getItem(`chat_${email}_${meeting.meeting_id}`);
       if (saved) return JSON.parse(saved);
@@ -32,13 +32,15 @@ function ChatUI({ meeting }) {
   useEffect(() => {
     if (meeting) {
       const email = localStorage.getItem("email") || "default";
-      const savedChat = localStorage.getItem(`chat_${email}_${meeting.meeting_id}`);
-      setChat(savedChat ? JSON.parse(savedChat) : []);
       setError("");
       setPipelineStatus(null);
+
       if (meeting.is_allowed === false) {
+        setChat([]);
         setError("🔒 you are not allowed to know about this meeting");
       } else {
+        const savedChat = localStorage.getItem(`chat_${email}_${meeting.meeting_id}`);
+        setChat(savedChat ? JSON.parse(savedChat) : []);
         checkPipelineStatus();
       }
     }
@@ -50,11 +52,11 @@ function ChatUI({ meeting }) {
 
   // Save chat to localStorage whenever it changes
   useEffect(() => {
-    if (meeting?.meeting_id && chat.length > 0) {
+    if (meeting?.meeting_id && meeting.is_allowed !== false && chat.length > 0) {
       const email = localStorage.getItem("email") || "default";
       localStorage.setItem(`chat_${email}_${meeting.meeting_id}`, JSON.stringify(chat));
     }
-  }, [chat, meeting?.meeting_id]);
+  }, [chat, meeting?.meeting_id, meeting?.is_allowed]);
 
   const checkPipelineStatus = async () => {
     if (!meeting) return;

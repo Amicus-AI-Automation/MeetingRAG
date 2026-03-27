@@ -180,6 +180,24 @@ const queryMeeting = async (req, res) => {
       return res.status(400).json({ message: "meeting_id is required" });
     }
 
+    // Node-side access control (double-check)
+    const meeting = jsonStorage.getMeetingById(meeting_id);
+    if (!meeting) {
+      return res.status(404).json({ message: "Meeting not found" });
+    }
+
+    const isAllowed = 
+      meeting.access_control?.allowed_users?.includes(email) ||
+      meeting.ingestion_info?.uploaded_by === email ||
+      meeting.participants?.some(p => p.name === email || p.user_id === email);
+
+    if (!isAllowed) {
+      return res.status(403).json({ 
+        message: "🔒 you are not allowed to know about this meeting",
+        success: false 
+      });
+    }
+
     // Forward to Python RAG service
     let pythonRes;
     try {

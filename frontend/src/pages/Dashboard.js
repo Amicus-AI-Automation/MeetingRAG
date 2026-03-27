@@ -94,7 +94,7 @@ function Dashboard({ onLogout }) {
         {showUpload ? (
           <UploadMeeting onClose={handleUploadComplete} />
         ) : (
-          <ChatUI meeting={selectedMeeting} />
+          <ChatUI key={selectedMeeting?.meeting_id} meeting={selectedMeeting} />
         )}
       </div>
     </div>
